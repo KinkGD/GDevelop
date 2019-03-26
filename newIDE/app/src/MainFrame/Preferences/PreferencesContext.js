@@ -3,7 +3,8 @@ import createReactContext, { type Context } from 'create-react-context';
 
 export type AlertMessageIdentifier =
   | 'use-non-smoothed-textures'
-  | 'use-nearest-scale-mode';
+  | 'use-nearest-scale-mode'
+  | 'function-extractor-explanation';
 
 export type PreferencesValues = {|
   language: string,
