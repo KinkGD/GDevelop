@@ -45,7 +45,10 @@ import {
 } from './SelectionHandler';
 import EmptyEventsPlaceholder from './EmptyEventsPlaceholder';
 import { ensureSingleOnceInstructions } from './OnceInstructionSanitizer';
-import EventsContextAnalyzerDialog from './EventsContextAnalyzerDialog';
+import EventsContextAnalyzerDialog, {
+  type EventsContextResult,
+  toEventsContextResult,
+} from './EventsContextAnalyzerDialog';
 import SearchPanel from './SearchPanel';
 import {
   type ResourceSource,
@@ -117,9 +120,7 @@ type State = {|
   inlineEditingAnchorEl: ?any,
   inlineEditingChangesMade: boolean,
 
-  eventsContextAnalyzerOpen: boolean,
-  analyzedEventsContextObjectsNames: ?Array<string>,
-  analyzedEventsContextObjectOrGroupNames: ?Array<string>,
+  analyzedEventsContextResult: ?EventsContextResult,
 
   serializedEventsToExtract: ?Object,
 
@@ -183,9 +184,7 @@ export default class EventsSheet extends React.Component<Props, State> {
     inlineEditingAnchorEl: null,
     inlineEditingChangesMade: false,
 
-    eventsContextAnalyzerOpen: false,
-    analyzedEventsContextObjectsNames: null,
-    analyzedEventsContextObjectOrGroupNames: null,
+    analyzedEventsContextResult: null,
 
     serializedEventsToExtract: null,
 
@@ -727,24 +726,17 @@ export default class EventsSheet extends React.Component<Props, State> {
     eventsContextAnalyzer.launch(eventsList);
     eventsList.delete();
 
-    const eventsContext = eventsContextAnalyzer.getEventsContext();
     this.setState({
-      eventsContextAnalyzerOpen: true,
-      analyzedEventsContextObjectsNames: eventsContext
-        .getObjectNames()
-        .toNewVectorString()
-        .toJSArray(),
-      analyzedEventsContextObjectOrGroupNames: eventsContext
-        .getObjectOrGroupNames()
-        .toNewVectorString()
-        .toJSArray(),
+      analyzedEventsContextResult: toEventsContextResult(
+        eventsContextAnalyzer.getEventsContext()
+      ),
     });
     eventsContextAnalyzer.delete();
   };
 
   _closeEventsContextAnalyzer = () => {
     this.setState({
-      eventsContextAnalyzerOpen: false,
+      analyzedEventsContextResult: null,
     });
   };
 
@@ -1134,18 +1126,12 @@ export default class EventsSheet extends React.Component<Props, State> {
                 }}
               />
             )}
-            {this.state.eventsContextAnalyzerOpen &&
-              this.state.analyzedEventsContextObjectsNames &&
-              this.state.analyzedEventsContextObjectOrGroupNames && (
-                <EventsContextAnalyzerDialog
-                  open={this.state.eventsContextAnalyzerOpen}
-                  onClose={this._closeEventsContextAnalyzer}
-                  objectsNames={this.state.analyzedEventsContextObjectsNames}
-                  objectOrGroupNames={
-                    this.state.analyzedEventsContextObjectOrGroupNames
-                  }
-                />
-              )}
+            {this.state.analyzedEventsContextResult && (
+              <EventsContextAnalyzerDialog
+                onClose={this._closeEventsContextAnalyzer}
+                eventsContextResult={this.state.analyzedEventsContextResult}
+              />
+            )}
             {this.state.serializedEventsToExtract && (
               <EventsFunctionExtractorDialog
                 project={project}
